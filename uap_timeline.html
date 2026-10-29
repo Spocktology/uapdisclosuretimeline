@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>UAP/UFO Disclosure Timeline</title>
+<style>
+  :root {
+    --bg: #0b0d12;
+    --panel: #12151c;
+    --card: #171a23;
+    --border: #262b38;
+    --text: #e7e9ee;
+    --muted: #8b93a7;
+    --accent: #7dd3fc;
+    --gov: #4ade80;
+    --leg: #60a5fa;
+    --media: #f472b6;
+    --book: #fbbf24;
+    --film: #c084fc;
+    --pursue: #fb7185;
+    --unverified: #f59e0b;
+    --verified: #4ade80;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    line-height: 1.5;
+  }
+  .wrap {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 28px 20px 80px;
+  }
+  header h1 {
+    font-size: 1.7rem;
+    margin: 0 0 4px;
+    letter-spacing: -0.5px;
+  }
+  header p.sub {
+    color: var(--muted);
+    margin: 0 0 20px;
+    font-size: 0.95rem;
+  }
+  .controls {
+    position: sticky;
+    top: 0;
+    background: rgba(11,13,18,0.96);
+    backdrop-filter: blur(6px);
+    padding: 14px 0 12px;
+    z-index: 50;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 18px;
+  }
+  .search-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  #search {
+    flex: 1;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+  }
+  #search:focus { outline: none; border-color: var(--accent); }
+  .counter { color: var(--muted); font-size: 0.85rem; white-space: nowrap; align-self: center; }
+  .filters { display: flex; flex-wrap: wrap; gap: 6px; }
+  .filter-btn {
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--muted);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all .15s ease;
+  }
+  .filter-btn .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .filter-btn.active {
+    color: var(--text);
+    border-color: currentColor;
+  }
+  .filter-btn[data-cat="gov"].active { background: rgba(74,222,128,0.12); border-color: var(--gov); }
+  .filter-btn[data-cat="leg"].active { background: rgba(96,165,250,0.12); border-color: var(--leg); }
+  .filter-btn[data-cat="media"].active { background: rgba(244,114,182,0.12); border-color: var(--media); }
+  .filter-btn[data-cat="book"].active { background: rgba(251,191,36,0.12); border-color: var(--book); }
+  .filter-btn[data-cat="film"].active { background: rgba(192,132,252,0.12); border-color: var(--film); }
+  .filter-btn[data-cat="pursue"].active { background: rgba(251,113,133,0.12); border-color: var(--pursue); }
+
+  .legend {
+    display:flex; flex-wrap:wrap; gap: 14px; margin: 10px 0 4px;
+    font-size: 0.78rem; color: var(--muted);
+  }
+  .legend span { display:flex; align-items:center; gap:5px;}
+  .legend .sw { width:10px;height:10px;border-radius:50%; display:inline-block; }
+
+  .timeline { position: relative; padding-left: 26px; }
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 7px; top: 6px; bottom: 6px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--border), var(--border));
+  }
+  .year-marker {
+    position: relative;
+    margin: 30px 0 14px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .year-marker::before {
+    content: "";
+    position: absolute;
+    left: -26px; top: 4px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid var(--bg);
+  }
+  .event {
+    position: relative;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: border-color .15s ease;
+  }
+  .event::before {
+    content: "";
+    position: absolute;
+    left: -22.5px; top: 18px;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--muted);
+    border: 2px solid var(--bg);
+  }
+  .event[data-cat="gov"]::before { background: var(--gov); }
+  .event[data-cat="leg"]::before { background: var(--leg); }
+  .event[data-cat="media"]::before { background: var(--media); }
+  .event[data-cat="book"]::before { background: var(--book); }
+  .event[data-cat="film"]::before { background: var(--film); }
+  .event[data-cat="pursue"]::before { background: var(--pursue); }
+
+  .event:hover { border-color: #3a4154; }
+  .event.hidden { display: none; }
+  .event-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .event-date { font-size: 0.78rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
+  .event-title { font-size: 1rem; font-weight: 600; margin: 2px 0 2px; }
+  .tag-row { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+  .tag {
+    font-size: 0.68rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .tag.verified { color: var(--verified); border-color: var(--verified); }
+  .tag.unverified { color: var(--unverified); border-color: var(--unverified); }
+
+  .event-body {
+    display: none;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-size: 0.9rem;
+    color: #cbd2e1;
+  }
+  .event.open .event-body { display: block; }
+  .event-body a { color: var(--accent); text-decoration: none; }
+  .event-body a:hover { text-decoration: underline; }
+  .sources { margin-top: 8px; font-size: 0.82rem; }
+  .sources div { margin-bottom: 3px; }
+
+  .chevron { color: var(--muted); font-size: 0.8rem; transition: transform .15s ease; flex-shrink:0; margin-top:4px;}
+  .event.open .chevron { transform: rotate(90deg); }
+
+  .empty-state {
+    color: var(--muted);
+    text-align: center;
+    padding: 40px 0;
+    display: none;
+  }
+  footer {
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+  @media (max-width: 560px) {
+    .event-date { font-size: 0.72rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>UAP / UFO Disclosure Timeline</h1>
+    <p class="sub">From the 2017 New York Times AATIP story to the 2026 PURSUE file releases — official reports, legislation, whistleblower claims, books, and film.</p>
+  </header>
+
+  <div class="controls">
+    <div class="search-row">
+      <input id="search" type="text" placeholder="Search events, names, keywords…" />
+      <div class="counter" id="counter"></div>
+    </div>
+    <div class="filters" id="filters"></div>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--verified)"></span> Documented / primary source</span>
+      <span><span class="sw" style="background:var(--unverified)"></span> Claim / unverified allegation</span>
+    </div>
+  </div>
+
+  <div class="timeline" id="timeline"></div>
+  <div class="empty-state" id="empty">No events match your filters.</div>
+
+  <footer>
+    Sources linked per-entry. Government/congressional documents are primary-sourced; whistleblower and media claims are flagged as unverified pending independent confirmation. Last updated: 2026.
+  </footer>
+</div>
+
+<script>
+const CATS = {
+  gov:   { label: "Government/Official", color: "var(--gov)" },
+  leg:   { label: "Congressional/Legislative", color: "var(--leg)" },
+  media: { label: "Whistleblower/Media", color: "var(--media)" },
+  book:  { label: "Books", color: "var(--book)" },
+  film:  { label: "Documentary", color: "var(--film)" },
+  pursue:{ label: "PURSUE File Releases", color: "var(--pursue)" }
+};
+
+const EVENTS = [
+{date:"2017-12-16", title:"NYT reveals AATIP: \"Glowing Auras and Black Money\"", cat:"gov", status:"verified",
+ desc:"The New York Times (Kean, Blumenthal, Cooper) reveals the Advanced Aerospace Threat Identification Program (AATIP), a ~$22M Pentagon effort (2007–2012) championed by Sen. Harry Reid, run by Luis Elizondo, contracted through Robert Bigelow's AAWSAP. Published with two Navy FLIR videos (\"Gimbal,\" \"GOFAST\").",
+ sources:[["NYT: Glowing Auras and Black Money","https://www.nytimes.com/2017/12/16/us/politics/pentagon-program-ufo-harry-reid.html"],["NYT: 2 Navy Airmen and an Object","https://www.nytimes.com/2017/12/16/us/pentagon-ufo-video.html"]]},
+
+{date:"2017-12-01", title:"Luis Elizondo resigns from DoD, joins To The Stars Academy", cat:"media", status:"verified",
+ desc:"Elizondo publicly resigns, stating he passed UAP material to Christopher Mellon before leaving. Joins Tom DeLonge's To The Stars Academy (TTSA).",
+ sources:[["NYT follow-up: U.F.O.s: Is This All There Is?","https://www.nytimes.com/2017/12/29/science/ufos-aliens-space-travel.html"]]},
+
+{date:"2018-06-01", title:"TTSA releases additional leaked Navy footage", cat:"media", status:"verified",
+ desc:"To The Stars Academy releases further leaked Navy UAP footage (\"Go Fast,\" \"Gimbal\").", sources:[]},
+
+{date:"2019-04-23", title:"Navy drafting new guidelines for reporting UFOs", cat:"gov", status:"verified",
+ desc:"Politico reports the U.S. Navy is drafting formal guidelines for pilots/personnel to report \"unidentified aircraft\" encounters, destigmatizing the process.",
+ sources:[["Politico","https://www.politico.com/story/2019/04/23/us-navy-guidelines-reporting-ufos-1375290"]]},
+
+{date:"2019-06-15", title:"Trump says he was briefed on Navy UFO sightings", cat:"gov", status:"verified",
+ desc:"President Trump confirms he received a briefing on Navy UAP sightings.",
+ sources:[["Politico","https://www.politico.com/story/2019/06/15/trump-says-he-doesnt-particularly-believe-ufo-reports-1365848"]]},
+
+{date:"2019-08-01", title:"UAP Task Force (UAPTF) stood up; Jay Stratton named first director", cat:"gov", status:"verified",
+ desc:"Navy's Unidentified Aerial Phenomena Task Force established within Office of Naval Intelligence. Jay Stratton named first director.", sources:[]},
+
+{date:"2020-04-27", title:"Pentagon formally releases 3 Navy UAP videos", cat:"gov", status:"verified",
+ desc:"DoD officially releases \"FLIR1,\" \"Gimbal,\" and \"GOFAST\" to clear up questions about authenticity of previously leaked footage.",
+ sources:[["CBS News","https://www.cbsnews.com/news/pentagon-videos-unidentied-aerial-phenomena-ufo/"]]},
+
+{date:"2020-12-27", title:"FY2021 Intelligence Authorization Act mandates UAP assessment", cat:"leg", status:"verified",
+ desc:"Congress mandates ODNI/DoD deliver a public intelligence assessment on UAP within 180 days.", sources:[]},
+
+{date:"2021-06-25", title:"ODNI delivers \"Preliminary Assessment: Unidentified Aerial Phenomena\"", cat:"gov", status:"verified",
+ desc:"144 incidents (2004–2021) reviewed; only 1 resolved. No evidence of foreign-adversary technology or alien origin — but no explanation for most cases. Deputy SecDef Kathleen Hicks directs formalization of UAPTF into a permanent office.",
+ sources:[["ODNI Preliminary Assessment (PDF)","https://archive.dni.gov/files/ODNI/documents/assessments/Prelimary-Assessment-UAP-20210625.pdf"],["Pentagon statement (Kirby)","https://www.war.gov/News/Releases/Release/article/2672732/statement-by-pentagon-press-secretary-john-kirby-on-unidentified-aerial-phenome/"]]},
+
+{date:"2021-10-10", title:"Book: \"Skinwalkers at the Pentagon\" published", cat:"book", status:"verified",
+ desc:"James Lacatski, Colm Kelleher, and George Knapp publish a DoD-cleared insider account of AAWSAP's paranormal/UFO research program at Skinwalker Ranch.",
+ sources:[["Open Library entry","https://openlibrary.org/books/OL50517758M/Skinwalkers_at_the_Pentagon"]]},
+
+{date:"2022-05-17", title:"First public congressional UAP hearing in 50+ years", cat:"leg", status:"verified",
+ desc:"House Intelligence Subcommittee hears testimony from Ronald Moultrie and Scott Bray — ~400 reported incidents, first open hearing since the 1960s Project Blue Book era.",
+ sources:[["Hearing transcript (congress.gov)","https://www.congress.gov/117/meeting/house/114761/documents/HHRG-117-IG05-Transcript-20220517.pdf"],["CBS News coverage","https://www.cbsnews.com/news/ufo-hearing-congress-pentagon-watch-live-stream-today-2022-05-17/"]]},
+
+{date:"2022-06-09", title:"NASA announces independent UAP study team", cat:"gov", status:"verified",
+ desc:"NASA announces formation of an external independent study team to assess how the agency can scientifically contribute to UAP understanding.", sources:[]},
+
+{date:"2022-07-20", title:"AARO established, replacing UAPTF", cat:"gov", status:"verified",
+ desc:"DoD establishes the All-domain Anomaly Resolution Office (AARO); Dr. Sean Kirkpatrick named director. Jay Stratton retires as UAPTF winds down.",
+ sources:[["DoD press release","https://www.war.gov/News/Releases/Release/Article/3100053/dod-announces-the-establishment-of-the-all-domain-anomaly-resolution-office/"],["Hicks establishment memo (PDF)","https://media.defense.gov/2022/Jul/20/2003039074/-1/-1/1/ESTABLISHMENT-OF-THE-ALL-DOMAIN-ANOMALY-RESOLUTION-OFFICE.PDF"]]},
+
+{date:"2022-12-16", title:"AARO media roundtable", cat:"gov", status:"verified",
+ desc:"Moultrie and Kirkpatrick brief media on AARO's mission and transition from the Navy-led UAPTF.",
+ sources:[["Transcript","https://www.war.gov/News/Transcripts/Transcript/Article/3249303/usdis-ronald-moultrie-and-dr-sean-kirkpatrick-media-roundtable-on-the-all-domai/"]]},
+
+{date:"2023-04-19", title:"Kirkpatrick testifies to Senate Armed Services Subcommittee", cat:"leg", status:"verified",
+ desc:"AARO Director Sean Kirkpatrick testifies on mission/budget/oversight; publicly declassifies 3 sensor clips for the first time.",
+ sources:[["Statement for the record (PDF)","https://www.armed-services.senate.gov/imo/media/doc/Dr.%20Kirkpatrick%20Oral%20Remarks%20-%20SASC%20ETC%20Open%20Hearing%204.19.23%20FINAL.pdf"],["Full transcript (PDF)","https://www.armed-services.senate.gov/imo/media/doc/23-31_04-19-2023.pdf"]]},
+
+{date:"2023-05-31", title:"NASA UAP study team holds first public meeting", cat:"gov", status:"verified", desc:"NASA's independent UAP study team holds its first public session.", sources:[]},
+
+{date:"2023-06-05", title:"NewsNation/Coulthart interviews David Grusch", cat:"media", status:"unverified",
+ desc:"Ross Coulthart's NewsNation interview with former intelligence officer David Grusch becomes the proximate trigger for the July 2023 House Oversight hearing. Grusch alleges a multi-decade secret UAP crash-retrieval and reverse-engineering program.",
+ sources:[["NewsNation 2023 retrospective","https://www.newsnationnow.com/space/ufo/whistleblowers-congress-ufo-mania-2023/"]]},
+
+{date:"2023-06-20", title:"Coulthart reports on alleged CIA \"Office of Global Access\"", cat:"media", status:"unverified",
+ desc:"Coulthart reports, citing anonymous sources, on an alleged CIA office running UFO crash-retrieval operations via special forces, with material passed to private aerospace contractors. Claims the U.S. holds \"far more than nine\" non-human craft.",
+ sources:[["NewsNation coverage","https://www.newsnationnow.com/space/ufo/cia-ufo-office-retrieval-coulthart-reaction/"],["Related report","https://www.newsnationnow.com/space/ufo/cia-office-ufos/"]]},
+
+{date:"2023-07-13", title:"UAP Disclosure Act of 2023 introduced", cat:"leg", status:"verified",
+ desc:"Sen. Schumer and Sen. Rounds introduce the UAP Disclosure Act of 2023 as an FY2024 NDAA amendment, modeled on the JFK Records Act.",
+ sources:[["Congressional Record text","https://www.govinfo.gov/content/pkg/CREC-2023-07-13/html/CREC-2023-07-13-pt1-PgS2953.htm"]]},
+
+{date:"2023-07-26", title:"House Oversight hearing: Grusch sworn testimony", cat:"leg", status:"unverified",
+ desc:"David Grusch testifies under oath alongside pilots Ryan Graves and David Fravor, alleging the government possesses \"non-human\" biologics from crash retrievals. AARO publicly states it has found no verifiable evidence to substantiate these claims.",
+ sources:[["Hearing record (PDF)","https://www.congress.gov/118/meeting/house/116282/documents/HHRG-118-GO06-20230726-SD006.pdf"]]},
+
+{date:"2023-08-31", title:"AARO launches public website", cat:"gov", status:"verified", desc:"AARO launches aaro.mil as its public-facing website.", sources:[]},
+
+{date:"2023-09-14", title:"NASA releases UAP Independent Study Team final report", cat:"gov", status:"verified",
+ desc:"Final report recommends NASA play a larger role using its data/tooling to study UAP scientifically; finds no evidence of non-human intelligence. NASA names Mark McInerney first Director of UAP Research.",
+ sources:[["Final report (PDF)","https://science.nasa.gov/wp-content/uploads/2023/09/uap-independent-study-team-final-report.pdf"],["NASA press release","https://www.nasa.gov/news-release/update-nasa-shares-uap-independent-study-report-names-director/"]]},
+
+{date:"2023-10-15", title:"ODNI/DoD FY2023 annual report: 801 total UAP reports", cat:"gov", status:"verified", desc:"Annual report to Congress tallies 801 cumulative UAP reports.", sources:[]},
+
+{date:"2023-10-31", title:"AARO launches secure whistleblower reporting mechanism", cat:"gov", status:"verified",
+ desc:"Secure channel opened for current/former government personnel with direct knowledge of alleged UAP programs.", sources:[]},
+
+{date:"2023-12-01", title:"Coulthart receives \"Bent Spoon Award\" / Media Watch criticism", cat:"media", status:"unverified",
+ desc:"Australian Skeptics award Ross Coulthart their 2023 Bent Spoon Award for uncritical reporting on alleged government UFO cover-ups; ABC's Media Watch separately questions his evidentiary standards.",
+ sources:[["Background (Wikipedia)","https://en.wikipedia.org/wiki/Ross_Coulthart"]]},
+
+{date:"2023-12-22", title:"FY2024 NDAA signed — scaled-back UAP Disclosure Act", cat:"leg", status:"verified",
+ desc:"Creates a National Archives UAP Records Collection, 25-year presumptive disclosure window, and agency review/postponement process. Eminent-domain and presidential review-board provisions stripped in conference.",
+ sources:[["Overview — legalclarity.org","https://legalclarity.org/uap-briefings-hearings-aaro-and-the-disclosure-act/"],["Wikipedia summary","https://en.wikipedia.org/wiki/Unidentified_Anomalous_Phenomena_Disclosure_Act"]]},
+
+{date:"2024-03-08", title:"AARO Historical Record Report Volume I released", cat:"gov", status:"verified",
+ desc:"Reviews U.S. government UAP involvement 1945–Oct 2023. Finds no verifiable evidence of extraterrestrial technology, reverse-engineering programs, or recovered craft.",
+ sources:[["DoD statement","https://www.war.gov/News/Releases/Release/Article/3700894/statement-by-pentagon-press-secretary-maj-gen-pat-ryder-on-the-historical-recor/"],["Full report (PDF)","https://media.defense.gov/2024/Mar/08/2003409233/-1/-1/0/DOPSR-2024-0263-AARO-HISTORICAL-RECORD-REPORT-VOLUME-1-2024.PDF"]]},
+
+{date:"2024-04-15", title:"AARO Historical Record Report Volume II delivered", cat:"gov", status:"verified",
+ desc:"Second volume covering findings from interviews/research Nov 2023–Apr 2024, per FY23 NDAA §6802 mandate.", sources:[]},
+
+{date:"2024-08-20", title:"Book: Luis Elizondo's \"Imminent\" published", cat:"book", status:"verified",
+ desc:"Elizondo's memoir \"Imminent: Inside the Pentagon's Hunt for UFOs\" (William Morrow/HarperCollins) debuts #1 on the NYT bestseller list.",
+ sources:[["Publisher page","https://www.harpercollins.com/products/imminent-luis-elizondo"]]},
+
+{date:"2024-11-13", title:"House Oversight hearing: \"Exposing the Truth\" + Immaculate Constellation", cat:"leg", status:"unverified",
+ desc:"Second major UAP hearing. Elizondo, Tim Gallaudet, Michael Gold, and journalist Michael Shellenberger testify. Shellenberger presents the \"Immaculate Constellation\" report alleging an unacknowledged special-access UAP program run without congressional knowledge.",
+ sources:[["Congress.gov event page","https://www.congress.gov/event/118th-congress/house-event/117721"],["Press summary","https://mace.house.gov/media/in-the-news/icymi-house-panel-hears-hidden-uap-trove-secretive-arms-race"]]},
+
+{date:"2024-11-14", title:"AARO releases FY2024 Consolidated Annual Report on UAP", cat:"gov", status:"verified",
+ desc:"New director Dr. Jon Kosloski reports 1,600+ cumulative reports, 757 in this reporting period; states AARO has discovered no verifiable evidence of extraterrestrial activity.",
+ sources:[["AARO press products","https://www.aaro.mil/Congressional-Press-Products/"],["Media roundtable transcript","https://www.war.gov/News/Transcripts/Transcript/Article/3965734/dr-jon-kosloski-director-aaro-media-roundtable-on-the-fy24-consolidated-annual/"]]},
+
+{date:"2024-11-19", title:"Kosloski testifies to Senate Armed Services Subcommittee", cat:"leg", status:"verified",
+ desc:"AARO director Jon Kosloski delivers statement for the record and briefing to the Senate Armed Services Subcommittee on Emerging Threats and Capabilities.", sources:[]},
+
+{date:"2025-01-27", title:"NewsNation/CW special: \"Hunting UFOs: The Crash Retrieval Whistleblower\"", cat:"media", status:"unverified",
+ desc:"Ross Coulthart-hosted special features a new Air Force veteran whistleblower claiming direct knowledge of a crash-retrieval program, with alleged never-before-seen recovery video.",
+ sources:[["CW press listing","https://www.cwtvpr.com/the-cw/shows/specials/episodes?page=2"]]},
+
+{date:"2025-03-09", title:"\"The Age of Disclosure\" premieres at SXSW", cat:"film", status:"unverified",
+ desc:"Dan Farah's documentary (EPs: Jay Stratton, Luis Elizondo) features 34 current/former government, military, and intelligence insiders alleging an 80-year cover-up and reverse-engineering programs.",
+ sources:[["Wikipedia","https://en.wikipedia.org/wiki/The_Age_of_Disclosure"]]},
+
+{date:"2025-09-09", title:"House task force hearing on UAP transparency & whistleblower protection", cat:"leg", status:"unverified",
+ desc:"New House Oversight Task Force on the Declassification of Federal Secrets hears from Jeffrey Nuccetelli, active-duty Navy Chief Alexandro Wiggins (first active-duty officer to testify publicly), George Knapp, Dylan Borland, and POGO's Joe Spielberger. Rep. Eric Burlison shows drone/Hellfire-missile footage of an alleged orb incident off Yemen (Oct 2024).",
+ sources:[["House Oversight release","https://oversight.house.gov/release/hearing-wrap-up-government-must-be-more-transparent-about-uaps/"],["DefenseScoop coverage","https://defensescoop.com/2025/09/09/military-whistleblowers-share-new-evidence-alleged-uap-ufo-hearing/"]]},
+
+{date:"2025-10-01", title:"AARO publishes FY2025 Consolidated Annual Report on UAP", cat:"gov", status:"verified",
+ desc:"Latest annual report to Congress on UAP case intake and resolution status.",
+ sources:[["AARO Congressional/Press Products","https://www.aaro.mil/Congressional-Press-Products/"]]},
+
+{date:"2025-11-21", title:"\"The Age of Disclosure\" wide release", cat:"film", status:"unverified",
+ desc:"Theatrical + Amazon Prime release, preceded by a special Capitol Hill screening. Becomes Amazon Prime's highest-grossing documentary; draws skeptical pushback over lack of physical evidence.",
+ sources:[["Wikipedia","https://en.wikipedia.org/wiki/The_Age_of_Disclosure"],["Vulture: Capitol Hill screening","https://www.vulture.com/article/ufo-doc-age-of-disclosure-marco-rubio.html"],["Skeptic.com review","https://www.skeptic.com/article/the-aliens-are-here-again-a-review-of-the-age-of-disclosure/"]]},
+
+{date:"2026-05-08", title:"PURSUE Release 01 — Department of War launches war.gov/ufo", cat:"pursue", status:"verified",
+ desc:"Trump directs an interagency effort (White House, ODNI, DOE, AARO, NASA, FBI) to identify and declassify UAP files. DoD (renamed Department of War) launches the first tranche of \"never-before-seen\" unresolved case files — documents and video, publicly searchable, no clearance required.",
+ sources:[["Official announcement","https://www.war.gov/News/Releases/Release/Article/4480582/department-of-war-releases-unidentified-anomalous-phenomena-files-in-historic-t/"]]},
+
+{date:"2026-05-22", title:"PURSUE Release 02", cat:"pursue", status:"verified",
+ desc:"Second tranche of declassified UAP files published to war.gov/ufo.",
+ sources:[["Announcement","https://www.war.gov/News/Releases/Release/Article/4499305/department-of-war-publishes-second-release-of-unidentified-anomalous-phenomena/"]]},
+
+{date:"2026-06-03", title:"Jay Stratton announces memoir", cat:"book", status:"verified",
+ desc:"Former UAPTF director Jay Stratton announces \"Out of the Shadows,\" saying he will \"break my silence\" on his government UAP investigations.", sources:[]},
+
+{date:"2026-06-12", title:"PURSUE Release 03", cat:"pursue", status:"verified",
+ desc:"Third tranche of declassified UAP files published to war.gov/ufo.",
+ sources:[["Announcement","https://www.war.gov/News/Releases/Release/Article/4515408/department-of-war-publishes-third-release-of-unidentified-anomalous-phenomena-f/"]]},
+
+{date:"2026-07-10", title:"PURSUE Release 04", cat:"pursue", status:"verified",
+ desc:"Fourth tranche of declassified UAP files published to war.gov/ufo.",
+ sources:[["Announcement","https://www.war.gov/News/Releases/Release/Article/4539898/department-of-war-publishes-fourth-release-of-unidentified-anomalous-phenomena/"]]},
+
+{date:"2026-08-07", title:"PURSUE Release 05", cat:"pursue", status:"verified",
+ desc:"Fifth tranche of declassified UAP files published to war.gov/ufo. Rolling releases continue \"every few weeks.\"",
+ sources:[["Announcement","https://www.war.gov/News/Releases/Release/Article/4565994/department-of-war-publishes-fifth-release-of-unidentified-anomalous-phenomena-f/"]]},
+
+{date:"2026-09-01", title:"TV series based on Stratton's memoir announced", cat:"book", status:"verified",
+ desc:"Dan Farah (director of The Age of Disclosure), who holds film/TV rights, announces a scripted series based on Jay Stratton's forthcoming memoir.", sources:[]},
+
+{date:"2026-09-18", title:"PURSUE Release 06 — largest disclosure to date (AAWSAP/DIRD corpus)", cat:"pursue", status:"verified",
+ desc:"Sixth and largest tranche to date: 75 files (59 PDFs, 15 videos, 1 audio). First publication of the complete AAWSAP/BAASS contract file (7 contract records, DOW-UAP-D110–D116) together with the full 37-document Defense Intelligence Reference Document (DIRD) series (D117–D153) covering warp drives, traversable wormholes, antigravity, metamaterials, negative-mass propulsion, and quantum-vacuum energy — the technical library central to the UAP-disclosure debate since 2017. Also includes contemporary DoW mission reports on 2022 Iraq and 2025 Middle East UAP encounters, the program's first local-law-enforcement submission (a 2023 Colorado orb sighting), Project Blue Book-era files on the 1952 Tremonton, Utah film, and an Edward Ruppelt 1952 ATIC presentation transcript. Database total after this release: 450 files across six tranches.",
+ sources:[["Official DoD release statement","https://www.globalsecurity.org/military/library/news/2026/09/mil-260918-dod01.htm"],["Detailed summary — DECUR","https://decur.org/documents/pursue-release-6-2026"],["ClearanceJobs coverage","https://news.clearancejobs.com/2026/09/22/warp-drives-wormholes-and-ufos-whats-inside-the-pentagons-latest-uap-files/"],["File-by-file guide — nowdeclassified.com","https://www.nowdeclassified.com/guides/pursue-release-06"]]},
+
+{date:"2026-10-23", title:"PURSUE Release 07 — black triangle UAP memo, Project Capella, Skinwalker Ranch DNA testing", cat:"pursue", status:"verified",
+ desc:"Seventh tranche: 28 files, bringing the database total to 478 files across seven releases. Highlights include an AARO Memorandum for Record (DOW-UAP-D176) documenting a 2026 sighting of a matte-black triangular craft (13–15 ft wingspan) near a sensitive U.S. facility, witnessed by multiple federal law enforcement/defense observers; a 2010 investigation file on purported paranormal activity at a Utah ranch (Skinwalker Ranch) including DNA testing results; and \"Project Capella\" documentation (DOW-UAP-D167, Dec. 2008) along with Cold War-era intelligence reports.",
+ sources:[["LA Mag coverage","https://lamag.com/news/skinwalkers-and-a-silent-black-triangle-the-pentagons-latest-ufo-revelations/"],["Leonard David — Project Capella detail","https://www.leonarddavid.com/seventh-release-of-files-on-unidentified-anomalous-phenomena-uap-project-capella-detailed/"],["Mashable access guide","https://in.mashable.com/science/115320/ufo-disclosure-2026-department-of-war-releases-7th-batch-of-files-heres-how-to-access"],["AOL/UK summary","https://www.aol.co.uk/articles/seventh-ufo-files-batch-reveals-064244000.html"]]},
+
+{date:"2026-10-13", title:"Book: Jay Stratton's \"Out of the Shadows\" published", cat:"book", status:"unverified",
+ desc:"First memoir by a former UAPTF director. Alleges an 80-year disinformation campaign, crash-retrieved craft, confirmation of a 1947 Roswell crash and recovery of \"non-human bodies,\" and personal contact experiences. Vetted by 21 government agencies before release. Audiobook read by Stratton and Hal Puthoff.",
+ sources:[["People.com exclusive","https://people.com/confessions-of-the-governments-top-alien-hunter-12171214"],["disclosurediaries.com profile","https://www.disclosurediaries.com/key-people-jay-stratton/"]]},
+];
+
+// ---- render ----
+const timelineEl = document.getElementById('timeline');
+const filtersEl = document.getElementById('filters');
+const searchEl = document.getElementById('search');
+const counterEl = document.getElementById('counter');
+const emptyEl = document.getElementById('empty');
+
+let activeFilters = new Set(Object.keys(CATS));
+let searchTerm = "";
+
+// build filter buttons
+Object.entries(CATS).forEach(([key, info]) => {
+  const btn = document.createElement('div');
+  btn.className = 'filter-btn active';
+  btn.dataset.cat = key;
+  btn.innerHTML = `<span class="dot" style="background:${info.color}"></span>${info.label}`;
+  btn.addEventListener('click', () => {
+    if (activeFilters.has(key)) {
+      activeFilters.delete(key);
+      btn.classList.remove('active');
+    } else {
+      activeFilters.add(key);
+      btn.classList.add('active');
+    }
+    render();
+  });
+  filtersEl.appendChild(btn);
+});
+
+searchEl.addEventListener('input', (e) => {
+  searchTerm = e.target.value.toLowerCase();
+  render();
+});
+
+function fmtDate(d) {
+  const dt = new Date(d + "T00:00:00");
+  return dt.toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' });
+}
+
+function slug(title) {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+}
+
+function render() {
+  timelineEl.innerHTML = "";
+  let lastYear = null;
+  let shown = 0;
+
+  const sorted = [...EVENTS].sort((a,b) => a.date.localeCompare(b.date));
+
+  sorted.forEach(ev => {
+    const matchesFilter = activeFilters.has(ev.cat);
+    const haystack = (ev.title + " " + ev.desc).toLowerCase();
+    const matchesSearch = !searchTerm || haystack.includes(searchTerm);
+    const visible = matchesFilter && matchesSearch;
+
+    const year = ev.date.slice(0,4);
+    if (visible && year !== lastYear) {
+      const yearDiv = document.createElement('div');
+      yearDiv.className = 'year-marker';
+      yearDiv.textContent = year;
+      timelineEl.appendChild(yearDiv);
+      lastYear = year;
+    }
+
+    const card = document.createElement('div');
+    card.className = 'event' + (visible ? '' : ' hidden');
+    card.dataset.cat = ev.cat;
+    card.id = slug(ev.title);
+
+    const statusTag = ev.status === 'verified'
+      ? '<span class="tag verified">● Documented</span>'
+      : '<span class="tag unverified">● Claim / unverified</span>';
+
+    const sourcesHtml = ev.sources.length
+      ? '<div class="sources">' + ev.sources.map(s => `<div>🔗 <a href="${s[1]}" target="_blank" rel="noopener">${s[0]}</a></div>`).join('') + '</div>'
+      : '<div class="sources" style="color:var(--muted)">No direct source link available.</div>';
+
+    card.innerHTML = `
+      <div class="event-head">
+        <div>
+          <div class="event-date">${fmtDate(ev.date)}</div>
+          <div class="event-title">${ev.title}</div>
+          <div class="tag-row">
+            <span class="tag">${CATS[ev.cat].label}</span>
+            ${statusTag}
+          </div>
+        </div>
+        <div class="chevron">▶</div>
+      </div>
+      <div class="event-body">
+        <p>${ev.desc}</p>
+        ${sourcesHtml}
+      </div>
+    `;
+    card.addEventListener('click', () => card.classList.toggle('open'));
+    timelineEl.appendChild(card);
+    if (visible) shown++;
+  });
+
+  counterEl.textContent = `${shown} / ${EVENTS.length} events`;
+  emptyEl.style.display = shown === 0 ? 'block' : 'none';
+}
+
+// deep-link support
+window.addEventListener('DOMContentLoaded', () => {
+  render();
+  if (location.hash) {
+    const el = document.getElementById(location.hash.slice(1));
+    if (el) {
+      el.classList.add('open');
+      el.scrollIntoView({ behavior:'smooth', block:'center' });
+    }
+  }
+});
+</script>
+</body>
+</html>
