@@ -526,7 +526,7 @@ function render() {
   let lastYear = null;
   let shown = 0;
 
-  const sorted = [...EVENTS].sort((a,b) => a.date.localeCompare(b.date));
+  const sorted = [...EVENTS].sort((a,b) => b.date.localeCompare(a.date));
 
   sorted.forEach(ev => {
     const matchesFilter = activeFilters.has(ev.cat);
